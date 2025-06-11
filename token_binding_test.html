@@ -18,11 +18,6 @@
                 document.getElementById('applyCookiesParameters').style.display = 'none';
             }
             
-            // Hide the response section
-            function hideResponseSection() {
-                document.getElementById('resultsSection').style.display = 'none';
-            }
-            
             // Update preview area
             function updatePreview() {
                 if (!currentRequestType) return;
@@ -89,7 +84,6 @@
                 }
                 
                 hideAllParameterPanels();
-                hideResponseSection();
                 document.getElementById('supportedContractsParameters').style.display = 'block';
                 
                 currentRequestType = 'getSupportedContracts';
@@ -105,7 +99,6 @@
                 }
                 
                 hideAllParameterPanels();
-                hideResponseSection();
                 document.getElementById('tokenParameters').style.display = 'block';
                 
                 currentRequestType = 'executeGetToken';
@@ -121,7 +114,6 @@
                 }
                 
                 hideAllParameterPanels();
-                hideResponseSection();
                 document.getElementById('signOutParameters').style.display = 'block';
                 
                 currentRequestType = 'executeSignOut';
@@ -137,7 +129,6 @@
                 }
                 
                 hideAllParameterPanels();
-                hideResponseSection();
                 document.getElementById('applyCookiesParameters').style.display = 'block';
                 
                 currentRequestType = 'executeApplyCookies';
@@ -153,9 +144,6 @@
                 }
                 
                 // Show the results section
-                document.getElementById('resultsSection').style.display = 'block';
-                document.getElementById('requestResults').innerHTML = "<p>Processing request...</p>";
-                
                 let promise = null;
                 
                 switch (currentRequestType) {
@@ -183,21 +171,11 @@
                     document.getElementById('output').innerText = "Request: " + JSON.stringify(currentRequestData, null, 2) + 
                         "\n\n" + currentRequestType + " response: " + JSON.stringify(response, null, 2);
                     
-                    // Display results in the results section
-                    document.getElementById('requestResults').innerHTML = "<strong>Request:</strong><pre>" + 
-                        JSON.stringify(currentRequestData, null, 2) + "</pre>" +
-                        "<strong>Response:</strong><pre>" + JSON.stringify(response, null, 2) + "</pre>";
-                    
                     // Scroll to the bottom of the page to show results
                     window.scrollTo(0, document.body.scrollHeight);
                 }).catch(error => {
                     document.getElementById('output').innerText = "Request: " + JSON.stringify(currentRequestData, null, 2) + 
                         "\n\n" + currentRequestType + " error: " + error;
-                    
-                    // Display error in the results section
-                    document.getElementById('requestResults').innerHTML = "<strong>Request:</strong><pre>" + 
-                        JSON.stringify(currentRequestData, null, 2) + "</pre>" +
-                        "<strong>Error:</strong><pre>" + error + "</pre>";
                     
                     // Scroll to the bottom of the page to show error
                     window.scrollTo(0, document.body.scrollHeight);
@@ -368,11 +346,6 @@
         </div>
         
         <div id="output" style="margin-top: 20px; white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;"></div>
-        
-        <div id="resultsSection" style="margin-top: 20px; border-top: 2px solid #888; padding-top: 15px; display: none; font-size: 14px;">
-            <h3>Response</h3>
-            <div id="requestResults" style="white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; min-height: 100px;"></div>
-        </div>
     </body>
 </html>
 
