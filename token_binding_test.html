@@ -5,11 +5,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>TokenBinding Test</title>
         <script>
-            // 全局变量存储当前选择的请求类型和参数
+            // Global variables to store current request type and parameters
             let currentRequestType = '';
             let currentRequestData = null;
+            let currentPromise = null; // To keep track of the current request
             
-            // 隐藏所有参数面板
+            // Hide all parameter panels
             function hideAllParameterPanels() {
                 document.getElementById('tokenParameters').style.display = 'none';
                 document.getElementById('supportedContractsParameters').style.display = 'none';
@@ -17,11 +18,16 @@
                 document.getElementById('applyCookiesParameters').style.display = 'none';
             }
             
-            // 更新预览区域
+            // Hide the response section
+            function hideResponseSection() {
+                document.getElementById('resultsSection').style.display = 'none';
+            }
+            
+            // Update preview area
             function updatePreview() {
                 if (!currentRequestType) return;
                 
-                // 根据当前选择的请求类型，更新请求数据
+                // Based on the currently selected request type, update request data
                 switch (currentRequestType) {
                     case 'getSupportedContracts':
                         currentRequestData = {
@@ -70,14 +76,20 @@
                         break;
                 }
                 
-                // 更新预览文本
+                // Update preview text
                 document.getElementById('output').innerText = "Ready to send request:\n" + 
                     "Type: " + currentRequestType + "\n" +
                     "Parameters: " + JSON.stringify(currentRequestData, null, 2);
             }
             
             function prepareGetSupportedContracts() {
+                // Cancel any previous request
+                if (currentPromise && currentPromise.abort) {
+                    currentPromise.abort();
+                }
+                
                 hideAllParameterPanels();
+                hideResponseSection();
                 document.getElementById('supportedContractsParameters').style.display = 'block';
                 
                 currentRequestType = 'getSupportedContracts';
@@ -87,7 +99,13 @@
             }
             
             function prepareExecuteGetToken() {
+                // Cancel any previous request
+                if (currentPromise && currentPromise.abort) {
+                    currentPromise.abort();
+                }
+                
                 hideAllParameterPanels();
+                hideResponseSection();
                 document.getElementById('tokenParameters').style.display = 'block';
                 
                 currentRequestType = 'executeGetToken';
@@ -97,7 +115,13 @@
             }
             
             function prepareExecuteSignOut() {
+                // Cancel any previous request
+                if (currentPromise && currentPromise.abort) {
+                    currentPromise.abort();
+                }
+                
                 hideAllParameterPanels();
+                hideResponseSection();
                 document.getElementById('signOutParameters').style.display = 'block';
                 
                 currentRequestType = 'executeSignOut';
@@ -107,7 +131,13 @@
             }
             
             function prepareExecuteApplyCookies() {
+                // Cancel any previous request
+                if (currentPromise && currentPromise.abort) {
+                    currentPromise.abort();
+                }
+                
                 hideAllParameterPanels();
+                hideResponseSection();
                 document.getElementById('applyCookiesParameters').style.display = 'block';
                 
                 currentRequestType = 'executeApplyCookies';
@@ -121,6 +151,10 @@
                     document.getElementById('output').innerText = "Error: No request prepared";
                     return;
                 }
+                
+                // Show the results section
+                document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('requestResults').innerHTML = "<p>Processing request...</p>";
                 
                 let promise = null;
                 
@@ -142,12 +176,25 @@
                         return;
                 }
                 
+                // Store the current promise
+                currentPromise = promise;
+                
                 promise.then(response => {
                     document.getElementById('output').innerText = "Request: " + JSON.stringify(currentRequestData, null, 2) + 
                         "\n\n" + currentRequestType + " response: " + JSON.stringify(response, null, 2);
+                    
+                    // Display results in the results section
+                    document.getElementById('requestResults').innerHTML = "<strong>Request:</strong><pre>" + 
+                        JSON.stringify(currentRequestData, null, 2) + "</pre>" +
+                        "<strong>Response:</strong><pre>" + JSON.stringify(response, null, 2) + "</pre>";
                 }).catch(error => {
                     document.getElementById('output').innerText = "Request: " + JSON.stringify(currentRequestData, null, 2) + 
                         "\n\n" + currentRequestType + " error: " + error;
+                    
+                    // Display error in the results section
+                    document.getElementById('requestResults').innerHTML = "<strong>Request:</strong><pre>" + 
+                        JSON.stringify(currentRequestData, null, 2) + "</pre>" +
+                        "<strong>Error:</strong><pre>" + error + "</pre>";
                 });
             }
             
@@ -180,16 +227,16 @@
             }
         </style>
         <script>
-            // 页面加载完成后初始化
+            // Initialize after page load is complete
             window.onload = function() {
-                // 为所有输入字段添加变化监听器
+                // Add change listeners to all input fields
                 const inputs = document.querySelectorAll('input, select');
                 inputs.forEach(input => {
                     input.addEventListener('change', updatePreview);
                     input.addEventListener('input', updatePreview);
                 });
                 
-                // 为单选按钮添加监听器
+                // Add listeners to radio buttons
                 const radioButtons = document.querySelectorAll('input[type="radio"]');
                 radioButtons.forEach(radio => {
                     radio.addEventListener('change', updatePreview);
@@ -286,7 +333,7 @@
                 <input type="text" id="accountId" value="254a35a5-5cb0-45b7-8c46-0b51ee8831bf.72f988bf-86f1-41af-91ab-2d7cd011db47" style="width: 300px;">
                 <button type="button" onclick="showTip('accountIdTip')" style="margin-left: 5px; cursor: pointer; font-size: 12px;">?</button>
                 <div id="accountIdTip" style="display: none; margin-top: 5px; padding: 5px; background-color: #f8f8f8; border: 1px solid #ddd; border-radius: 3px; font-size: 12px;">
-                    <p>The accountId is formed by oid + '.' + tenant_id. To find the oid and tenant_id, you need to navigate to edge://signin-internals/.</p>
+                    <p>The accountId is formed by oid + '.' + tenant_id. To find the oid and tenant_id, click <a href="edge://signin-internals/" style="color: #0066cc; text-decoration: underline;">edge://signin-internals/</a> to open the page.</p>
                 </div>
             </div>
             <div style="margin-bottom: 5px;">
@@ -315,6 +362,11 @@
         </div>
         
         <div id="output" style="margin-top: 20px; white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;"></div>
+        
+        <div id="resultsSection" style="margin-top: 20px; border-top: 2px solid #888; padding-top: 15px; display: none; font-size: 14px;">
+            <h3>Response</h3>
+            <div id="requestResults" style="white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; min-height: 100px;"></div>
+        </div>
     </body>
 </html>
 
