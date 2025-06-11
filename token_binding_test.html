@@ -187,6 +187,9 @@
                     document.getElementById('requestResults').innerHTML = "<strong>Request:</strong><pre>" + 
                         JSON.stringify(currentRequestData, null, 2) + "</pre>" +
                         "<strong>Response:</strong><pre>" + JSON.stringify(response, null, 2) + "</pre>";
+                    
+                    // Scroll to the bottom of the page to show results
+                    window.scrollTo(0, document.body.scrollHeight);
                 }).catch(error => {
                     document.getElementById('output').innerText = "Request: " + JSON.stringify(currentRequestData, null, 2) + 
                         "\n\n" + currentRequestType + " error: " + error;
@@ -195,6 +198,9 @@
                     document.getElementById('requestResults').innerHTML = "<strong>Request:</strong><pre>" + 
                         JSON.stringify(currentRequestData, null, 2) + "</pre>" +
                         "<strong>Error:</strong><pre>" + error + "</pre>";
+                    
+                    // Scroll to the bottom of the page to show error
+                    window.scrollTo(0, document.body.scrollHeight);
                 });
             }
             
