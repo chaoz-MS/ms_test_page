@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TokenBinding Test</title>
+        <script>
+            // 全局变量存储当前选择的请求类型和参数
+            let currentRequestType = '';
+            let currentRequestData = null;
+            
+            // 隐藏所有参数面板
+            function hideAllParameterPanels() {
+                document.getElementById('tokenParameters').style.display = 'none';
+                document.getElementById('supportedContractsParameters').style.display = 'none';
+                document.getElementById('signOutParameters').style.display = 'none';
+                document.getElementById('applyCookiesParameters').style.display = 'none';
+            }
+            
+            // 更新预览区域
+            function updatePreview() {
+                if (!currentRequestType) return;
+                
+                // 根据当前选择的请求类型，更新请求数据
+                switch (currentRequestType) {
+                    case 'getSupportedContracts':
+                        currentRequestData = {
+                            brokerId: document.getElementById('brokerIdContracts').value
+                        };
+                        break;
+                    case 'executeGetToken':
+                        const selectedChannel = document.querySelector('input[name="channel"]:checked').value;
+                        let redirectUri = "msauth.com.microsoft.msedge://auth";
+                        if (selectedChannel === "beta") {
+                            redirectUri = "msauth.com.microsoft.msedge.beta://auth";
+                        } else if (selectedChannel === "canary") {
+                            redirectUri = "msauth.com.microsoft.msedge.canary://auth";
+                        }
+                        
+                        currentRequestData = {
+                            brokerId: document.getElementById('brokerId').value,
+                            clientId: document.getElementById('clientId').value,
+                            authority: document.getElementById('authority').value,
+                            scope: document.getElementById('scope').value,
+                            redirectUri: redirectUri,
+                            correlationId: document.getElementById('correlationId').value,
+                            isSecurityTokenService: document.getElementById('isSecurityTokenService').value === 'true',
+                            extraParameters: {
+                                ext1: document.getElementById('ext1').value,
+                                ext2: document.getElementById('ext2').value === 'true',
+                                ext3: document.getElementById('ext3').value
+                            }
+                        };
+                        break;
+                    case 'executeSignOut':
+                        currentRequestData = {
+                            brokerId: document.getElementById('brokerIdSignOut').value,
+                            accountId: document.getElementById('accountId').value,
+                            extraParameters: {
+                                ext1: document.getElementById('ext1SignOut').value,
+                                ext2: document.getElementById('ext2SignOut').value === 'true'
+                            }
+                        };
+                        break;
+                    case 'executeApplyCookies':
+                        currentRequestData = {
+                            brokerId: document.getElementById('brokerIdCookies').value,
+                            uri: document.getElementById('uri').value
+                        };
+                        break;
+                }
+                
+                // 更新预览文本
+                document.getElementById('output').innerText = "Ready to send request:\n" + 
+                    "Type: " + currentRequestType + "\n" +
+                    "Parameters: " + JSON.stringify(currentRequestData, null, 2);
+            }
+            
+            function prepareGetSupportedContracts() {
+                hideAllParameterPanels();
+                document.getElementById('supportedContractsParameters').style.display = 'block';
+                
+                currentRequestType = 'getSupportedContracts';
+                updatePreview();
+                
+                document.getElementById('submitButton').style.display = 'inline-block';
+            }
+            
+            function prepareExecuteGetToken() {
+                hideAllParameterPanels();
+                document.getElementById('tokenParameters').style.display = 'block';
+                
+                currentRequestType = 'executeGetToken';
+                updatePreview();
+                
+                document.getElementById('submitButton').style.display = 'inline-block';
+            }
+            
+            function prepareExecuteSignOut() {
+                hideAllParameterPanels();
+                document.getElementById('signOutParameters').style.display = 'block';
+                
+                currentRequestType = 'executeSignOut';
+                updatePreview();
+                
+                document.getElementById('submitButton').style.display = 'inline-block';
+            }
+            
+            function prepareExecuteApplyCookies() {
+                hideAllParameterPanels();
+                document.getElementById('applyCookiesParameters').style.display = 'block';
+                
+                currentRequestType = 'executeApplyCookies';
+                updatePreview();
+                
+                document.getElementById('submitButton').style.display = 'inline-block';
+            }
+            
+            function submitRequest() {
+                if (!currentRequestType || !currentRequestData) {
+                    document.getElementById('output').innerText = "Error: No request prepared";
+                    return;
+                }
+                
+                let promise = null;
+                
+                switch (currentRequestType) {
+                    case 'getSupportedContracts':
+                        promise = navigator.platformAuthentication.getSupportedContracts(currentRequestData);
+                        break;
+                    case 'executeGetToken':
+                        promise = navigator.platformAuthentication.executeGetToken(currentRequestData);
+                        break;
+                    case 'executeSignOut':
+                        promise = navigator.platformAuthentication.executeSignOut(currentRequestData);
+                        break;
+                    case 'executeApplyCookies':
+                        promise = navigator.platformAuthentication.executeApplyCookies(currentRequestData);
+                        break;
+                    default:
+                        document.getElementById('output').innerText = "Error: Unknown request type";
+                        return;
+                }
+                
+                promise.then(response => {
+                    document.getElementById('output').innerText = "Request: " + JSON.stringify(currentRequestData, null, 2) + 
+                        "\n\n" + currentRequestType + " response: " + JSON.stringify(response, null, 2);
+                }).catch(error => {
+                    document.getElementById('output').innerText = "Request: " + JSON.stringify(currentRequestData, null, 2) + 
+                        "\n\n" + currentRequestType + " error: " + error;
+                });
+            }
+            
+            function showTip(tipId) {
+                const tipElement = document.getElementById(tipId);
+                if (tipElement.style.display === 'none') {
+                    tipElement.style.display = 'block';
+                } else {
+                    tipElement.style.display = 'none';
+                }
+            }
+        </script>
+        <style>
+            .button-container {
+                margin: 15px 0;
+            }
+            .button-container button {
+                margin-right: 10px;
+                margin-bottom: 10px;
+                padding: 8px 12px;
+                cursor: pointer;
+            }
+            #submitButton {
+                background-color: #4CAF50;
+                color: white;
+                font-weight: bold;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 4px;
+            }
+        </style>
+        <script>
+            // 页面加载完成后初始化
+            window.onload = function() {
+                // 为所有输入字段添加变化监听器
+                const inputs = document.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    input.addEventListener('change', updatePreview);
+                    input.addEventListener('input', updatePreview);
+                });
+                
+                // 为单选按钮添加监听器
+                const radioButtons = document.querySelectorAll('input[type="radio"]');
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('change', updatePreview);
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <h1>TokenBinding Test</h1>
+        
+        <div class="button-container">
+            <button onclick="prepareGetSupportedContracts()">test getSupportedContracts</button>
+            <button onclick="prepareExecuteGetToken()">test executeGetToken</button>
+            <button onclick="prepareExecuteSignOut()">test executeSignOut</button>
+            <button onclick="prepareExecuteApplyCookies()">test executeApplyCookies</button>
+        </div>
+        
+        <div style="margin-top: 10px; margin-bottom: 15px;">
+            <button id="submitButton" onclick="submitRequest()" style="display: none; background-color: #4CAF50; color: white; font-weight: bold; padding: 10px 25px; border: none; border-radius: 4px; font-size: 16px;">Submit Request</button>
+        </div>
+        
+        <div id="tokenParameters" style="margin: 15px 0; border: 1px solid #ddd; padding: 10px; display: none;">
+            <h3>GetToken Parameters</h3>
+            <div style="margin-bottom: 10px;">
+                <p>Please select the browser version:</p>
+                <label><input type="radio" name="channel" value="stable" checked> Stable</label>
+                <label><input type="radio" name="channel" value="beta"> Beta</label>
+                <label><input type="radio" name="channel" value="canary"> Canary</label>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="brokerId">brokerId:</label>
+                <input type="text" id="brokerId" value="MicrosoftEntra" style="width: 300px;">
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="clientId">clientId:</label>
+                <input type="text" id="clientId" value="d27197e0-83e8-48aa-84ab-4d8a8bd215db" style="width: 300px;">
+                <button type="button" onclick="showTip('clientIdTip')" style="margin-left: 5px; cursor: pointer; font-size: 12px;">?</button>
+                <div id="clientIdTip" style="display: none; margin-top: 5px; padding: 5px; background-color: #f8f8f8; border: 1px solid #ddd; border-radius: 3px; font-size: 12px;">
+                    <p>Edge's clientId is d27197e0-83e8-48aa-84ab-4d8a8bd215db. Modifying it may cause the request to fail.</p>
+                </div>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="authority">authority:</label>
+                <input type="text" id="authority" value="https://login.microsoftonline.com/common" style="width: 300px;">
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="scope">scope:</label>
+                <input type="text" id="scope" value="User.Read openid profile offline_access" style="width: 300px;">
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="correlationId">correlationId:</label>
+                <input type="text" id="correlationId" value="9ced98dd-ef35-477e-a63d-8bb21258e56d" style="width: 300px;">
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="isSecurityTokenService">isSecurityTokenService:</label>
+                <select id="isSecurityTokenService">
+                    <option value="false" selected>false</option>
+                    <option value="true">true</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="ext1">extraParameters.ext1:</label>
+                <input type="text" id="ext1" value="est1_test" style="width: 300px;">
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="ext2">extraParameters.ext2:</label>
+                <select id="ext2">
+                    <option value="false" selected>false</option>
+                    <option value="true">true</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="ext3">extraParameters.ext3:</label>
+                <input type="text" id="ext3" value="" style="width: 300px;">
+            </div>
+        </div>
+        
+        <div id="supportedContractsParameters" style="margin: 15px 0; border: 1px solid #ddd; padding: 10px; display: none;">
+            <h3>GetSupportedContracts Parameters</h3>
+            <div style="margin-bottom: 5px;">
+                <label for="brokerIdContracts">brokerId:</label>
+                <input type="text" id="brokerIdContracts" value="MicrosoftEntra" style="width: 300px;">
+            </div>
+        </div>
+        
+        <div id="signOutParameters" style="margin: 15px 0; border: 1px solid #ddd; padding: 10px; display: none;">
+            <h3>SignOut Parameters</h3>
+            <div style="margin-bottom: 5px;">
+                <label for="brokerIdSignOut">brokerId:</label>
+                <input type="text" id="brokerIdSignOut" value="MicrosoftEntra" style="width: 300px;">
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="accountId">accountId:</label>
+                <input type="text" id="accountId" value="254a35a5-5cb0-45b7-8c46-0b51ee8831bf.72f988bf-86f1-41af-91ab-2d7cd011db47" style="width: 300px;">
+                <button type="button" onclick="showTip('accountIdTip')" style="margin-left: 5px; cursor: pointer; font-size: 12px;">?</button>
+                <div id="accountIdTip" style="display: none; margin-top: 5px; padding: 5px; background-color: #f8f8f8; border: 1px solid #ddd; border-radius: 3px; font-size: 12px;">
+                    <p>The accountId is formed by oid + '.' + tenant_id. To find the oid and tenant_id, you need to navigate to edge://signin-internals/.</p>
+                </div>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="ext1SignOut">extraParameters.ext1:</label>
+                <input type="text" id="ext1SignOut" value="est1_test" style="width: 300px;">
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="ext2SignOut">extraParameters.ext2:</label>
+                <select id="ext2SignOut">
+                    <option value="false" selected>false</option>
+                    <option value="true">true</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="applyCookiesParameters" style="margin: 15px 0; border: 1px solid #ddd; padding: 10px; display: none;">
+            <h3>ApplyCookies Parameters</h3>
+            <div style="margin-bottom: 5px;">
+                <label for="brokerIdCookies">brokerId:</label>
+                <input type="text" id="brokerIdCookies" value="MicrosoftEntra" style="width: 300px;">
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="uri">uri:</label>
+                <input type="text" id="uri" value="https://login.microsoftonline.com" style="width: 300px;">
+            </div>
+        </div>
+        
+        <div id="output" style="margin-top: 20px; white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;"></div>
+    </body>
+</html>
+
