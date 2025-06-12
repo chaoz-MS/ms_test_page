@@ -31,12 +31,7 @@
                         break;
                     case 'executeGetToken':
                         const selectedChannel = document.querySelector('input[name="channel"]:checked').value;
-                        let redirectUri = "msauth.com.microsoft.msedge://auth";
-                        if (selectedChannel === "beta") {
-                            redirectUri = "msauth.com.microsoft.msedge.beta://auth";
-                        } else if (selectedChannel === "canary") {
-                            redirectUri = "msauth.com.microsoft.msedge.canary://auth";
-                        }
+                        let redirectUri = document.getElementById('redirectUri').value;
                         
                         currentRequestData = {
                             brokerId: document.getElementById('brokerId').value,
@@ -100,6 +95,10 @@
                 
                 hideAllParameterPanels();
                 document.getElementById('tokenParameters').style.display = 'block';
+                
+                // Initialize redirectUri based on the selected channel
+                const selectedChannel = document.querySelector('input[name="channel"]:checked').value;
+                updateRedirectUri(selectedChannel);
                 
                 currentRequestType = 'executeGetToken';
                 updatePreview();
@@ -190,6 +189,21 @@
                     tipElement.style.display = 'none';
                 }
             }
+            
+            function updateRedirectUri(channel) {
+                let redirectUriValue = "msauth.com.microsoft.msedge://auth";
+                if (channel === "beta") {
+                    redirectUriValue = "msauth.com.microsoft.msedge-df.beta://auth";
+                } else if (channel === "canary") {
+                    redirectUriValue = "msauth.com.microsoft.msedge-df.canary://auth";
+                }
+                document.getElementById('redirectUri').value = redirectUriValue;
+                
+                // Update preview if executeGetToken is the current request type
+                if (currentRequestType === 'executeGetToken') {
+                    updatePreview();
+                }
+            }
         </script>
         <style>
             .button-container {
@@ -246,9 +260,13 @@
             <h3>GetToken Parameters</h3>
             <div style="margin-bottom: 10px;">
                 <p>Please select the browser version:</p>
-                <label><input type="radio" name="channel" value="stable" checked> Stable</label>
-                <label><input type="radio" name="channel" value="beta"> Beta</label>
-                <label><input type="radio" name="channel" value="canary"> Canary</label>
+                <label><input type="radio" name="channel" value="stable" checked onclick="updateRedirectUri('stable')"> Stable</label>
+                <label><input type="radio" name="channel" value="beta" onclick="updateRedirectUri('beta')"> Beta</label>
+                <label><input type="radio" name="channel" value="canary" onclick="updateRedirectUri('canary')"> Canary</label>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <label for="redirectUri">redirectUri:</label>
+                <input type="text" id="redirectUri" value="msauth.com.microsoft.msedge://auth" style="width: 300px;">
             </div>
             <div style="margin-bottom: 5px;">
                 <label for="brokerId">brokerId:</label>
